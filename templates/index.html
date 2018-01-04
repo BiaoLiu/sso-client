@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+
+<html>
+<head>
+    <title>首页</title>
+</head>
+
+<body>
+{% if user.is_authenticated %}
+    用户名：{{ user.username }}
+{% else %}
+    未登录
+{% endif %}
+
+</body>
+</html>
