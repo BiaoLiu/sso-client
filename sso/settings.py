@@ -32,6 +32,7 @@ SSO_HOST = 'http://127.0.0.1:8011'
 # SSO_HOST = 'http://120.27.46.167:8011'
 SSO_SERVER = SSO_HOST + '/server/'
 SSO_REGISTER = SSO_HOST + '/register.html'
+SSO_LOGOUT = SSO_HOST + '/logout.html'
 SSO_PUBLIC_KEY = 'wiWn3Qf8ZZbaB2fr9PIVm0NePsmVG23mFTW0mti6Is0MJe0HhXdLCHnFVw3qHCsa'
 SSO_PRIVATE_KEY = 'omD4PtIjczXouDCqaiHgh2yhSQMcUwdPZyPXUClJ5ig2H2blaWyW4X0GoMeKxSPf'
 

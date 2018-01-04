@@ -25,6 +25,7 @@ class LoginView(View):
         next = urlparse(request.META.get('HTTP_REFERER', '/'))
         next = urlunparse(('', '', next[2], next[3], next[4], next[5]))
         query = urlencode([('next', next)])
+        # 设定sso登录成功后回调地址 http://127.0.0.1:8015/auth/authenticate/?next=/
         redirect_to = urlunparse((scheme, netloc, path, '', query, ''))
         request_token = self.client.get_request_token(redirect_to)
         host = urljoin(self.client.server_url, 'authorize/')
@@ -49,8 +50,6 @@ class LoginView(View):
 
 
 class AuthenticateView(LoginView):
-    client = None
-
     def get(self, request):
         raw_access_token = request.GET['access_token']
         payload = URLSafeTimedSerializer(self.client.private_key).loads(raw_access_token)
@@ -66,35 +65,33 @@ class AuthenticateView(LoginView):
         return response
 
 
-class RegisterView(LoginView):
-    def get(self, request: WSGIRequest):
-        redirect_to = request.META.get('HTTP_REFERER', '')
-        if not redirect_to:
-            scheme = 'https' if request.is_secure() else 'http'
-            netloc = request.get_host()
-            redirect_to = urlunparse((scheme, netloc, '/', '', '', ''))
+class RegisterView(View):
+    def get_redirect_back(self):
+        redirect_back = self.request.META.get('HTTP_REFERER', '')
+        if not redirect_back:
+            scheme = 'https' if self.request.is_secure() else 'http'
+            netloc = self.request.get_host()
+            redirect_back = urlunparse((scheme, netloc, '/', '', '', ''))
+        return redirect_back
+
+    def get(self, request):
+        redirect_back = self.get_redirect_back()
         host = settings.SSO_REGISTER
-        url = '%s?%s' % (host, urlencode([('next', redirect_to)]))
+        url = '%s?%s' % (host, urlencode([('next', redirect_back)]))
         return HttpResponseRedirect(url)
 
 
-class LogoutView(View):
-    client = None
-
+class LogoutView(RegisterView):
     def get(self, request):
-        is_success = False
-        raw_access_token = request.COOKIES.get('token')
-        if raw_access_token:
-            access_token = URLSafeTimedSerializer(self.client.private_key).loads(raw_access_token)
-            is_success = self.client.logout(access_token)
-        return reverse('home')
+        redirect_back = self.get_redirect_back()
+        host = settings.SSO_LOGOUT
+        url = '%s?%s' % (host, urlencode([('next', redirect_back)]))
+        return HttpResponseRedirect(url)
 
 
 class Client(object):
     login_view = LoginView
     authenticate_view = AuthenticateView
-    register_view = RegisterView
-    logout_view = LogoutView
     backend = "%s.%s" % (ModelBackend.__module__, ModelBackend.__name__)
     user_extra_data = None
 
